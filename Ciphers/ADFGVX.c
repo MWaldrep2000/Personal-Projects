@@ -8,6 +8,7 @@
 
 // Encryption Constants //
 #define KEY_BLOCK_DIM 6
+#define MIN_KEY_LEN 6
 
 #define A 0
 #define D 1
@@ -72,7 +73,7 @@ int ADFGVX(char *text, char *key, char **block, int enc)
 	}
 
 	// Check if key is of a valid length //
-	if (strlen(key) != 6)
+	if (strlen(key) <= MIN_KEY_LEN)
 	{
 		return FAILURE;
 	}
