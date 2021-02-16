@@ -27,7 +27,7 @@
 // Returns a 0 if successful, otherwise a 1
 int decrypt(char *text, char *key, char** block)
 {
-
+	return SUCCESS;
 }
 
 // ADFGVX Cipher encryption function
@@ -37,16 +37,16 @@ int decrypt(char *text, char *key, char** block)
 // Returns a 0 if successful, otherwise a 1
 int encrypt(char *text, char *key, char** block)
 {
-
+	return SUCCESS;
 }
 
 // ADFGVX Cipher function; will either call encrypt or decrypt
 // *text = pointer to the string to be encrypted or decrypted
 // *key = string that is the key
 // **block = 2D array for the keyblock, assuming letters and numbers
-// encrypt = 0 to decrypt, one to encrypt
+// enc = 0 to decrypt, one to encrypt
 // Returns a 0 if successful, otherwise a 1
-int ADFGVX(char *text, char *key, char **block, int encrypt)
+int ADFGVX(char *text, char *key, char **block, int enc)
 {
 	// Variables //
 
@@ -80,7 +80,7 @@ int ADFGVX(char *text, char *key, char **block, int encrypt)
 	// Encryption or Decryption //
 
 	// If encrypt is 1, then encrypt, otherwise decrypt
-	if (encrypt)
+	if (enc)
 	{
 		return encrypt(text, key, block);
 	}
