@@ -104,8 +104,6 @@ int encrypt(char *text, char *key, char **block)
 
 	// Columnar transposition array and temp variables
 	char **trans;
-	char temp_a;
-	char temp_b;
 
 	// Column and row variables for block
 	int col = 0, row = 0;
