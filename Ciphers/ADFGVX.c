@@ -11,8 +11,6 @@
 // Encryption Constants //
 #define KEY_BLOCK_DIM 6
 
-#define FILLER 'Z'
-
 // General Constants //
 #define FAILURE 1
 #define SUCCESS 0
@@ -91,11 +89,12 @@ int decrypt(char *text, char *key, char **block)
 }
 
 // ADFGVX Cipher encryption function
-// *text = pointer to the string to be encrypted
+// *plainText = pointer to the string to be encrypted
+// **cipherText = address of where to store the cipherText
 // *key = string that is the key
 // **block = 2D array for the keyblock, assuming letters and numbers
 // Returns a 0 if successful, otherwise a 1
-int encrypt(char *text, char *key, char **block)
+int encrypt(char *plainText, char **cipherText, char *key, char **block)
 {
 	// Variables //
 	
@@ -105,20 +104,28 @@ int encrypt(char *text, char *key, char **block)
 	// Columnar transposition array and temp variables
 	char **trans;
 
-	// Column and row variables for block
-	int col = 0, row = 0;
+	// cipherLen = the length of the ciphertext
+	// cipKeyRatio = ratio between cipher and key lengths
+	// col = column index; used for finding ADFGVX indecies
+	// i = iterator variable (primarily used in iterating through rows)
+	// j = iterator variable (primarily used in iterating through columns)
+	// k = iterator variable (primarily used to iterate through cipherText)
+	// keyLen = the length of the key
+	// row = row index; used for finding ADFGVX indecies
+	// textLen = the length of plaintext
+	int cipherLen, cipKeyRatio, col, i, j, k, keyLen, row, textLen;
 
-	// Iterators
-	int i, j;
+	// Get the length of the key
+	keyLen = strlen(key);
 
-	// Length of key
-	int keyLen = strlen(key);
+	// Get the length of the plaintext
+	textLen = strlen(plainText);
 
-	// Length of text
-	int len = strlen(text);
+	// From textLen, set the length of the cipherText
+	cipherLen = textLen * 2;
 
-	// Length of ciphertext
-	int cipherLen = (len * 2) + (((len * 2) % keyLen) == 0 ? 0 : (keyLen - ((len * 2) % keyLen)));
+	// From cipher and keylen, get ratio
+	cipKeyRatio = (cipherLen / keyLen) + (cipherLen % keyLen == 0 ? 1 : 2);
 
 	// Checking Validity //
 	
@@ -126,43 +133,48 @@ int encrypt(char *text, char *key, char **block)
 
 	// Encryption //
 
-	// Copy key into itself so it isn't a string literal
-	strcpy(key, key);
+	// If the key is GERMAN, and the cipherText is length of 12, then the box will look like this
+	// G **
+	// E **
+	// R **
+	// M **
+	// A **
+	// N **
+
+	// The matrix is built from the top downwards, so if we insert two more characters,
+	// then they are appended to G and E in this example.
 
 	// Allocate space for the cipher text; the algorithm doubles the size of the text when encrypting
-	char *cipherText = malloc(sizeof(char) * ((cipherLen) + 1));
+	*cipherText = malloc(sizeof(char) * ((cipherLen) + 1));
 
 	// Check if malloc was successful
-	if (cipherText == NULL)
+	if (*cipherText == NULL)
 	{
 		fprintf(stderr, "Error: malloc failed in allocating cipherText.\n");
 		return FAILURE;
 	}
 
-	// The letter Z will act as filler
-	for (i = 0; i < cipherLen; i++)
-	{
-		cipherText[i] = FILLER;
-	}
-
 	// Null terminate the cipher text
-	cipherText[cipherLen] = '\0';
+	// Considering the fact that the encryption doubles the size of the text,
+	// we know that cipherLen will properly terminate the text, as it is double
+	// the original plaintext length
+	(*cipherText)[cipherLen] = '\0';
 
 	// Iterate and encrypt character by character
-	for (i = 0; i < len; i++)
+	for (i = 0; i < textLen; i++)
 	{
 		// Retrieve the indecies of the character
-		if (findIndecies(block, text[i], &row, &col))
+		if (findIndecies(block, plainText[i], &row, &col))
 		{
-			free(cipherText);
+			free(*cipherText);
 
-			fprintf(stderr, "Error: character '%c' unrecognized by findIndecies().\n", text[i]);
+			fprintf(stderr, "Error: character '%c' unrecognized by findIndecies().\n", plainText[i]);
 			return FAILURE;
 		}
 
 		// Using row and column, generate the first two characters of cipher text
-		cipherText[2 * i] = ref[row];
-		cipherText[2 * i + 1] = ref[col];
+		(*cipherText)[2 * i] = ref[row];
+		(*cipherText)[2 * i + 1] = ref[col];
 	}
 
 	// Allocate space for the columnar transposition array
@@ -171,7 +183,7 @@ int encrypt(char *text, char *key, char **block)
 	// Check if trans was properly allocated
 	if (trans == NULL)
 	{
-		free(cipherText);
+		free(*cipherText);
 
 		fprintf(stderr, "Error: malloc failed in allocating trans.\n");
 		return FAILURE;
@@ -180,7 +192,7 @@ int encrypt(char *text, char *key, char **block)
 	// Allocate each slot of the columnar transposition array
 	for (i = 0; i < keyLen; i++)
 	{
-		trans[i] = malloc(sizeof(char) * (cipherLen / keyLen) + 1);
+		trans[i] = malloc(sizeof(char) * cipKeyRatio);
 
 		// If any of the array is NULL, free everything
 		if (trans[i] == NULL)
@@ -198,7 +210,7 @@ int encrypt(char *text, char *key, char **block)
 			}
 
 			free(trans);
-			free(cipherText);
+			free(*cipherText);
 
 			fprintf(stderr, "Error: malloc failed in allocating trans[%d].\n", j);
 			return FAILURE;
@@ -208,12 +220,10 @@ int encrypt(char *text, char *key, char **block)
 	// Place the cipherText into the transposition array
 	for (i = 0; i < keyLen; i++)
 	{
-		for (j = 0; j < cipherLen / keyLen; j++)
+		for (j = 0; j < cipKeyRatio; j++)
 		{
-			trans[i][j] = cipherText[j * keyLen + i];
+			trans[i][j] = ((j * keyLen + i) < (cipherLen)) ? (*cipherText)[j * keyLen + i] : '\0';
 		}
-
-		trans[i][j] = '\0';
 	}
 
 	// Sort the columns in ascending key order using bubble sort
@@ -231,26 +241,40 @@ int encrypt(char *text, char *key, char **block)
 	}
 
 	// Refill the cipher text with the transposed text
-	for (i = 0; i < keyLen; i++)
+	for (i = 0, k = 0; i < keyLen; i++)
 	{
-		for (j = 0; j < cipherLen / keyLen; j++)
+		for (j = 0; j < cipKeyRatio; j++)
 		{
-			cipherText[i * (cipherLen / keyLen) + j] = trans[i][j];
+			if (trans[i][j] != '\0')
+			{
+				(*cipherText)[k++] = trans[i][j];
+			}
 		}
 	}
 
-	printf("%s\n", cipherText);
+	// Memory Cleaning //
+
+	// Free everything in trans, then free trans
+	for (i = 0; i < keyLen; i++)
+	{
+		free(trans[i]);
+	}
+
+	free(trans);
+
+	printf("%s\n", *cipherText);
 
 	return SUCCESS;
 }
 
 // ADFGVX Cipher function; will either call encrypt or decrypt
-// *text = pointer to the string to be encrypted or decrypted
+// *plainText = pointer to the string to be encrypted or decrypted
+// **cipherText = pointer to store the cipherText in
 // *key = string that is the key
 // **block = 2D array for the keyblock, assuming letters and numbers
 // enc = 0 to decrypt, one to encrypt
 // Returns a 0 if successful, otherwise a 1
-int ADFGVX(char *text, char *key, char **block, int enc)
+int ADFGVX(char *plainText, char **cipherText, char *key, char **block, int enc)
 {
 	// Variables //
 
@@ -259,8 +283,8 @@ int ADFGVX(char *text, char *key, char **block, int enc)
 
 	// Checking Validity //
 
-	// Check if text, key, or block are NULL
-	if (text == NULL || key == NULL || block == NULL)
+	// Check if plainText, cipherText, key, or block are NULL
+	if (plainText == NULL || cipherText == NULL || key == NULL || block == NULL)
 	{
 		return FAILURE;
 	}
@@ -280,12 +304,12 @@ int ADFGVX(char *text, char *key, char **block, int enc)
 	// If encrypt is 1, then encrypt, otherwise decrypt
 	if (enc)
 	{
-		return encrypt(text, key, block);
+		return encrypt(plainText, cipherText, key, block);
 	}
 
 	else
 	{
-		return decrypt(text, key, block);
+		return decrypt(plainText, key, block);
 	}
 
 }
@@ -306,6 +330,8 @@ int main(void)
 
 	char **newBlock = malloc(sizeof(char*) * KEY_BLOCK_DIM);
 
+	char *cipherText = NULL;
+
 	int i, j;
 
 	for (i = 0; i < KEY_BLOCK_DIM; i++)
@@ -318,7 +344,16 @@ int main(void)
 		}
 	}
 
-	printf("%d\n", ADFGVX("defendtheeastwallofthecastle", stuff, newBlock, 1));
+	printf("%d\n", ADFGVX("attack", &cipherText, stuff, newBlock, 1));
+
+	for (i = 0; i < KEY_BLOCK_DIM; i++)
+	{
+		free(newBlock[i]);
+	}
+
+	free(newBlock);
+
+	free(cipherText);
 
 	return 0;
 }
