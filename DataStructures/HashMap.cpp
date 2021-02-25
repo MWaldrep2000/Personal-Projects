@@ -4,9 +4,10 @@
 	// C++ implementation of a HashMap class //
 
 	// Includes //
-#include <functional>
 
-using namespace std;
+#include <functional>
+#include <iostream>
+#include <sstream>
 
 	// Defines //
 
@@ -30,8 +31,9 @@ class HashMap
 	// Size is the amount of filled space
 	int capacity, size;
 
-	// The array which output V will be stored in
-	V *array;
+	// The arrays for keys and values
+	K *keys;
+	V *values;
 
 	// An array to keep track of all indecies in use
 	int *index;
@@ -45,7 +47,8 @@ class HashMap
 		// Note: does NOT implement any kind of collision resistance policy
 		unsigned int getHashIndex(K key)
 		{
-			return std::hash<K>(key) % capacity;
+			std::hash<K> keyHash;
+			return keyHash(key);
 		}
 
 		// Resizes the hashmap
@@ -54,7 +57,8 @@ class HashMap
 		void resize(bool expand)
 		{
 			// Allocate new V and index arrays
-			V *tempArray = new V [this->size];
+			K *tempKeys = new K[this->size];
+			V *tempValues = new V [this->size];
 
 			// First collect all of the values from the old array
 			for (int i = 0, k = 0; i < this->capacity; i++)
@@ -67,36 +71,44 @@ class HashMap
 
 				else
 				{
-					tempArray[k++] = this->array[i];
+					tempKeys[k] = this->keys[i];
+					tempValues[k++] = this->values[i];
 				}
 			}
 
 			// Delete the old arrays
-			delete[] this->array;
+			delete[] this->keys;
+			delete[] this->values;
 			delete[] this->index;
 
+
+			// Adjust capacity
+			this->capacity = expand ? this->capacity * 2 : MIN(this->capacity / 2, MIN_SIZE);
+
+			// Save the current size and reset
+			int currSize = this->size;
+			this->size = 0;
+
 			// Allocate new arrays of either double or half the capacity depending on the value of expand
-			this->array = new V [expand ? this->capacity * 2 : MIN(this->capacity / 2, MIN_SIZE)];
-			this->index = new bool [expand ? this->capacity * 2 : MIN(this->capacity / 2, MIN_SIZE)];
+			this->keys = new K [this->capacity];
+			this->values = new V [this->capacity];
+			this->index = new int [this->capacity];
 
 			// Set the values in index
-			for (int i = 0; i < (expand ? this->capacity * 2 : MIN(this->capacity / 2, MIN_SIZE)); i++)
+			for (int i = 0; i < this->capacity; i++)
 			{
 				this->index[i] = CLEAN;
 			}
 
 			// Reinsert the values stored in tempArray into the hash table
-			for (int i = 0; i < this->size; i++)
+			for (int i = 0; i < currSize; i++)
 			{
-				this->insert(tempArray[i]);
+				this->put(tempKeys[i], tempValues[i]);				
 			}
 
-			// Adjust capacity
-			this->capacity = expand ? this->capacity * 2 : MIN(this->capacity / 2, MIN_SIZE);
-
-			// Delete the tempArray
-			delete[] tempArray;
-
+			// Delete the tempKeys and tempValues
+			delete[] tempKeys;
+			delete[] tempValues;
 		}
 
 	public:
@@ -115,7 +127,8 @@ class HashMap
 		{
 			this->capacity = init;
 			this->size = 0;
-			this->array = new V [init];
+			this->keys = new K [init];
+			this->values = new V [init];
 			this->index = new int [init];
 
 			// Tell the HashMap that all indecies are clean
@@ -128,11 +141,20 @@ class HashMap
 		// Destructor //
 		~HashMap()
 		{
-			delete[] this->array;
+			delete[] this->keys;
+			delete[] this->values;
 			delete[] this->index;
 		}
 
 		// Public Methods //
+
+		// Return value found from key
+		// key = The value that key first maps to
+		// Returns the object found from key
+		V get(K key)
+		{
+			return this->values[this->getHashIndex(key) % capacity];
+		}
 
 		// Insert V using the hash index generated from K
 		// key = the key from which to get the index
@@ -156,23 +178,79 @@ class HashMap
 			{
 
 				// Adjusted index
-				int adj = base + (i * i);				
+				int adj = (base + (i * i)) % this->capacity;				
 
 				// If the index has nothing in it
 				if (this->index[adj] != TAKEN)
 				{
 					this->index[adj] = TAKEN;
-					this->array[adj] = value;
+					this->keys[adj] = key;
+					this->values[adj] = value;
+					break;
 				}
+
+				std::cout << "collision\n";
 			}
 
 			this->size++;
+		}
+
+		// Convert and return the hashmap as a string
+		// Takes no parameters
+		// Returns a string containing the values in the string
+		std::string toString(void)
+		{
+			
+			// Declare a string stream to hold the values found in the hashmap
+			std::stringstream s("");
+
+			// Iterate through the list and append all items to the stringstrea,
+			// k will keep track of how many items we've found
+			for (int i = 0, k = 0; i < this->capacity; i++)
+			{
+				// If the current space isn't taken
+				if (this->index[i] != TAKEN)
+				{
+					continue;
+				}
+				else
+				{
+					// Start off the string with the first value
+					if (k == 0)
+					{
+						s << "(" << this->keys[i] << ", " << this->values[i] << ")";
+					}
+					else
+					{
+						s << ", " << "(" << this->keys[i] << ", " << this->values[i] << ")";
+					}
+
+					k++;
+				}
+			}
+
+			// Conclude the stringstream with a newline
+			s << '\n';
+
+			return s.str();
 		}
 };
 
 int main(void)
 {
-	HashMap<int,int> hm(2);
+	HashMap<int,int*> hm(512);
+
+	for (int i = 0, j = 1; i < 10; i++, j += 512)
+	{
+		hm.put(j, new int);
+	}
+
+	for (int i = 0, j = 1; i < 10; i++, j += 512)
+	{
+		delete hm.get(j);
+	}
+
+	std::cout << hm.toString();
 
 	return 0;
 }
