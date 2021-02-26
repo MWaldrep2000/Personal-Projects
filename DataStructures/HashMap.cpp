@@ -214,6 +214,36 @@ class HashMap
 			this->size++;
 		}
 
+		// Removes and returns a value from key
+		// key = The key we should search in
+		// Returns the object found from key
+		V remove(K key)
+		{
+			// Get the hash index of the key
+			unsigned int base = getHashIndex(key);
+			
+			// Search through the list using quadratic probing
+			for (int i = 0; true; i++)
+			{
+
+				// Adjusted index
+				int adj = (base + (i * i)) % this->capacity;				
+
+				// If the index is clean
+				if (this->index[adj] == CLEAN)
+				{
+					return NULL;
+				}
+
+				// If the index has the requested key
+				else if (this->keys[adj] == key)
+				{
+					this->index[adj] = DIRTY;
+					return this->values[adj];
+				}
+			}
+		}
+
 		// Convert and return the hashmap as a string
 		// Takes no parameters
 		// Returns a string containing the values in the string
