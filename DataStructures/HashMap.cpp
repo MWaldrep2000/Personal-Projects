@@ -153,7 +153,28 @@ class HashMap
 		// Returns the object found from key
 		V get(K key)
 		{
-			return this->values[this->getHashIndex(key) % capacity];
+			// Get the hash index of the key
+			unsigned int base = getHashIndex(key);
+			
+			// Search through the list using quadratic probing
+			for (int i = 0; true; i++)
+			{
+
+				// Adjusted index
+				int adj = (base + (i * i)) % this->capacity;				
+
+				// If the index is clean
+				if (this->index[adj] == CLEAN)
+				{
+					return NULL;
+				}
+
+				// If the index has the requested key
+				else if (this->keys[adj] == key)
+				{
+					return this->values[adj];
+				}
+			}
 		}
 
 		// Insert V using the hash index generated from K
@@ -188,8 +209,6 @@ class HashMap
 					this->values[adj] = value;
 					break;
 				}
-
-				std::cout << "collision\n";
 			}
 
 			this->size++;
