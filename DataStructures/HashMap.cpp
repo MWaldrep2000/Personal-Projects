@@ -5,11 +5,17 @@
 
 	// Includes //
 
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <type_traits>
 
 	// Defines //
+
+// Propositional COnstants
+#define FALSE 0
+#define TRUE 1
 
 // Index Constants
 #define DIRTY -1
@@ -38,8 +44,26 @@ class HashMap
 	// An array to keep track of all indecies in use
 	int *index;
 
+	// Boolean to determine if the values of primitive or pointers
+	bool isPrimitive;
+
 	private:
 
+		// Wraps a primitive type up into a pointer
+		// object = the object to be boxed
+		// Returns either nothing if autoboxing is unnecessary or the pointer if successful
+		// WARNING: USES MALLOC AND NOT NEW
+		V *autoBox(V object)
+		{
+			// Check if the object in question is a pointer
+			if (!this->isPrimitive)
+			{
+				return NULL;
+			}
+
+			return std::malloc(sizeof(object));
+		}
+		
 		// Get the hash index based on ovject
 		// key = the object to get the hashcode of
 		// Returns the hashcode of key
@@ -57,7 +81,7 @@ class HashMap
 		void resize(bool expand)
 		{
 			// Allocate new V and index arrays
-			K *tempKeys = new K[this->size];
+			K *tempKeys = new K [this->size];
 			V *tempValues = new V [this->size];
 
 			// First collect all of the values from the old array
@@ -116,15 +140,16 @@ class HashMap
 		// Constructors //
 
 		// No argument constructor
-		HashMap(void)
-		{
-			this.HashSet(MIN_SIZE);
-		}
+		HashMap(void) : HashMap(MIN_SIZE) {}
 
 		// Argument constructor with initial size
 		// init = Initial size parameter
 		HashMap(int init)
 		{
+			// First, determine if the value type is primitive
+			this->isPrimitive = std::is_fundamental<V>::value;
+			
+			// Initialize all other members
 			this->capacity = init;
 			this->size = 0;
 			this->keys = new K [init];
@@ -183,7 +208,7 @@ class HashMap
 		// Returns nothing
 		// Note: uses quadratic probing as conflict resolution policy
 		void put(K key, V value)
-		{
+		{			
 			// Determine if we need to expand or not
 			// Quadratic probing requires that the table must be less than half full
 			if (this->size >= this->capacity / 2)
@@ -238,8 +263,19 @@ class HashMap
 				// If the index has the requested key
 				else if (this->keys[adj] == key)
 				{
+					// Mark the index as dirty
 					this->index[adj] = DIRTY;
-					return this->values[adj];
+					
+					// Save the value found at the key
+					V ret = this->values[adj];
+
+					// If the array shrinks to below a certain threshold, resize downwards
+					if (--(this->size) < (this->capacity / 2))
+					{
+						resize(false);
+					}
+
+					return ret;
 				}
 			}
 		}
@@ -287,19 +323,9 @@ class HashMap
 
 int main(void)
 {
-	HashMap<int,int*> hm(512);
-
-	for (int i = 0, j = 1; i < 10; i++, j += 512)
-	{
-		hm.put(j, new int);
-	}
-
-	for (int i = 0, j = 1; i < 10; i++, j += 512)
-	{
-		delete hm.get(j);
-	}
-
-	std::cout << hm.toString();
+	std::cout << sizeof(8) << '\n';
+	
+	HashMap<int,int> hm;
 
 	return 0;
 }
