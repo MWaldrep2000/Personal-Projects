@@ -5,15 +5,14 @@
 
 	// Includes //
 
-#include <cstdlib>
+#include <exception>
 #include <functional>
 #include <iostream>
 #include <sstream>
-#include <type_traits>
 
 	// Defines //
 
-// Propositional COnstants
+// Propositional Constants
 #define FALSE 0
 #define TRUE 1
 
@@ -29,20 +28,38 @@
 // Size Checking Macros
 #define MIN(a, b) ((a < b) ? a : b) // Return the min of a and b
 
+// KeyDuplicateException
+class KeyDuplicateException : public std::exception
+{
+	const char *what(void) const throw()
+	{
+		return "KeyDuplicateException in HashMap; the specified key already exists in the table.";
+	}
+};
+
+// KeyNotFoundException
+class KeyNotFoundException : public std::exception
+{
+	const char *what(void) const throw()
+	{
+		return "KeyNotFoundException in HashMap; the specified key does not exist.";
+	}
+};
+
 // HashSet class definition mapping input V to output T
 template <class K, class V>
 class HashMap
 {
 	// Capacity is the current amount of allocated space
 	// Size is the amount of filled space
-	int capacity, size;
+	unsigned int capacity, size;
 
 	// The arrays for keys and values
 	K *keys;
 	V *values;
 
 	// An array to keep track of all indecies in use
-	int *index;
+	int8_t *index;
 
 	private:
 		
@@ -98,7 +115,7 @@ class HashMap
 			// Allocate new arrays of either double or half the capacity depending on the value of expand
 			this->keys = new K [this->capacity];
 			this->values = new V [this->capacity];
-			this->index = new int [this->capacity];
+			this->index = new int8_t [this->capacity];
 
 			// Set the values in index
 			for (int i = 0; i < this->capacity; i++)
@@ -126,14 +143,14 @@ class HashMap
 
 		// Argument constructor with initial size
 		// init = Initial size parameter
-		HashMap(int init)
+		HashMap(unsigned int init)
 		{	
 			// Initialize all other members
 			this->capacity = init;
 			this->size = 0;
 			this->keys = new K [init];
 			this->values = new V [init];
-			this->index = new int [init];
+			this->index = new int8_t [init];
 
 			// Tell the HashMap that all indecies are clean
 			for (int i = 0; i < this->capacity; i++)
@@ -152,9 +169,56 @@ class HashMap
 
 		// Public Methods //
 
+		// Determines the size of the hashmap in bytes
+		// Takes no arguments
+		// Returns the number of bytes the object requires as a size_t
+		size_t byteSize(void)
+		{
+			// Initial size
+			size_t bytes = 0;
+
+			// Size of the reference along with the objects inside
+			bytes += sizeof(HashMap);
+
+			// Add in the lengths of all the values in the arrays
+			bytes += ((sizeof(K) + sizeof(V) + sizeof(int8_t)) * this->capacity);
+
+			return bytes;
+		}
+
+		// Determines if the given key is in the table
+		// key = the key to look for
+		// Returns true if the key is found, false if otherwise
+		bool containsKey(K key)
+		{
+			// Get the hash index of the key
+			unsigned int base = getHashIndex(key);
+			
+			// Search through the list using quadratic probing
+			for (int i = 0; true; i++)
+			{
+
+				// Adjusted index
+				int adj = (base + (i * i)) % this->capacity;				
+
+				// If the index is clean
+				if (this->index[adj] == CLEAN)
+				{
+					return false;;
+				}
+
+				// If the index has the requested key
+				else if (this->keys[adj] == key)
+				{
+					return true;
+				}
+			}
+		}
+
 		// Return value found from key
 		// key = The value that key first maps to
 		// Returns the object found from key
+		// Throws a KeyNotFoundException if the key does not exist
 		V get(K key)
 		{
 			// Get the hash index of the key
@@ -170,7 +234,7 @@ class HashMap
 				// If the index is clean
 				if (this->index[adj] == CLEAN)
 				{
-					return NULL;
+					throw(KeyNotFoundException());
 				}
 
 				// If the index has the requested key
@@ -181,13 +245,28 @@ class HashMap
 			}
 		}
 
+		// Fetches the number of key mappings
+		// Takes no arguments
+		// Returns the number of key mappings
+		unsigned int getSize(void)
+		{
+			return this->size;
+		}
+
 		// Insert V using the hash index generated from K
 		// key = the key from which to get the index
 		// value = the value that key should map to
 		// Returns nothing
+		// Throws an exception if the key already exists
 		// Note: uses quadratic probing as conflict resolution policy
 		void put(K key, V value)
 		{			
+			// Check if the key already exists
+			if (this->containsKey(key))
+			{
+				throw (KeyDuplicateException());
+			}
+
 			// Determine if we need to expand or not
 			// Quadratic probing requires that the table must be less than half full
 			if (this->size >= this->capacity / 2)
@@ -221,6 +300,7 @@ class HashMap
 		// Removes and returns a value from key
 		// key = The key we should search in
 		// Returns the object found from key
+		// Throws a KeyNotFoundException if the key does not exist
 		V remove(K key)
 		{
 			// Get the hash index of the key
@@ -236,7 +316,7 @@ class HashMap
 				// If the index is clean
 				if (this->index[adj] == CLEAN)
 				{
-					return NULL;
+					throw (KeyNotFoundException());
 				}
 
 				// If the index has the requested key
@@ -302,7 +382,11 @@ class HashMap
 
 int main(void)
 {
-	HashMap<int, HashMap<int, int*>> hm;
+	HashMap<int,int> hm;
+
+	hm.put(1, 1);
+
+	hm.byteSize();
 	
 	return 0;
 }
