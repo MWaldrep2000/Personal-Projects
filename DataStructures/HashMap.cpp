@@ -28,6 +28,15 @@
 // Size Checking Macros
 #define MIN(a, b) ((a < b) ? a : b) // Return the min of a and b
 
+// InvalidSizeException
+class InvalidSizeException : public std::exception
+{
+	const char *what(void) const throw()
+	{
+		return "InvalidSizeException in HashMap; HashMap was initialized with an invalid size.";
+	}
+};
+
 // KeyDuplicateException
 class KeyDuplicateException : public std::exception
 {
@@ -86,13 +95,8 @@ class HashMap
 			// First collect all of the values from the old array
 			for (int i = 0, k = 0; i < this->capacity; i++)
 			{
-				// If the index isn't TAKEN, ignore it
-				if (this->index[i] != TAKEN)
-				{
-					continue;
-				}
-
-				else
+				// If the index is taken, it means that there is a valid key-value pair present
+				if (this->index[i] == TAKEN)
 				{
 					tempKeys[k] = this->keys[i];
 					tempValues[k++] = this->values[i];
@@ -103,7 +107,6 @@ class HashMap
 			delete[] this->keys;
 			delete[] this->values;
 			delete[] this->index;
-
 
 			// Adjust capacity
 			this->capacity = expand ? this->capacity * 2 : MIN(this->capacity / 2, MIN_SIZE);
@@ -145,6 +148,12 @@ class HashMap
 		// init = Initial size parameter
 		HashMap(unsigned int init)
 		{	
+			// If init is invalid
+			if (init < MIN_SIZE)
+			{
+				throw (InvalidSizeException());
+			}
+			
 			// Initialize all other members
 			this->capacity = init;
 			this->size = 0;
@@ -212,6 +221,25 @@ class HashMap
 				{
 					return true;
 				}
+			}
+		}
+
+		// Determines if the given value is in the table
+		// value = the value to look for
+		// Returns true if the value is found, false if otherwise
+		// Note: LINEAR runtime
+		bool containsValue(V value)
+		{
+			// Initiate linear search through the values array
+			for (int i = 0; i < this->capacity; i++)
+			{
+				// If the index is taken and the value is the value we're looking for
+				if (this->index[i] == TAKEN && this->value[i] == value)
+				{
+					return true;
+				}
+
+				return false;
 			}
 		}
 
