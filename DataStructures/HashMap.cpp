@@ -281,6 +281,14 @@ class HashMap
 			return this->size;
 		}
 
+		// Determine if the map is empty
+		// Takes no arguments
+		// Returns true for empty, false if it isn't
+		bool isEmpty(void)
+		{
+			return this->size == 0;
+		}
+
 		// Insert V using the hash index generated from K
 		// key = the key from which to get the index
 		// value = the value that key should map to
