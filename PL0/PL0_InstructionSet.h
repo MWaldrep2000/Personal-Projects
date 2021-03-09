@@ -1,14 +1,25 @@
 
 	// PL0_InstructionSet.h //
 
-/* 	Header file containing all instructions relating to the PL0 VM
-	Note that this is merely a library of define statements and that
-	all instructions must be interpreted as I R L M where:
+/* 	
+	Header file containing all instructions relating to the PL0 VM
+	
+	This header contains:
+		-instruction codes
+		-an instruction struct
+		-valid instruction checking
+
+	Instructions are passed as I R L M where:
 		I = instruction
 		R = register
 		L = lexicographic level
 		M = modifier
+
 	Note that this convention does not apply to mathematical instructions
+	Mathematical an comparison instructions still follow I R L M, but:
+		R = result
+		L = operand 1
+		M = operand 2
 */
 
 	// Program Instructions //
@@ -119,3 +130,28 @@
 
 // R = (L >= M)
 #define GEQ 24
+
+	// Instruction Struct //
+
+/*
+	Framework to hold the current instruction
+*/
+
+typedef struct Instruction
+{
+	// Instruction
+	int I;
+
+	// Register
+	int R;
+
+	// Lexicographical level (or operand 1)
+	int L;
+
+	// Modifier (or operand 2)
+	int M;
+}; Instruction
+
+	// Error Checking //
+
+// TODO: Implement error checking with consideration for the number of registers
