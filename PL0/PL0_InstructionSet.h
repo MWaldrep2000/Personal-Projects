@@ -151,7 +151,3 @@ typedef struct Instruction
 	// Modifier (or operand 2)
 	int M;
 }; Instruction
-
-	// Error Checking //
-
-// TODO: Implement error checking with consideration for the number of registers
