@@ -7,7 +7,6 @@
 
 #include <exception>
 #include <functional>
-#include <iostream>
 #include <sstream>
 
 	// Defines //
@@ -23,7 +22,6 @@
 
 // Size Constants
 #define MIN_SIZE 2
-#define MAX_SIZE UINT_MAX
 
 // Size Checking Macros
 #define MIN(a, b) ((a < b) ? a : b) // Return the min of a and b
@@ -415,14 +413,3 @@ class HashMap
 			return s.str();
 		}
 };
-
-int main(void)
-{
-	HashMap<int,int> hm;
-
-	hm.put(1, 1);
-
-	hm.byteSize();
-	
-	return 0;
-}
