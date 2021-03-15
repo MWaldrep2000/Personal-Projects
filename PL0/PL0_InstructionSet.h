@@ -139,8 +139,8 @@
 
 typedef struct Instruction
 {
-	// Instruction
-	int I;
+	// Opcode
+	int O;
 
 	// Register
 	int R;
@@ -150,4 +150,4 @@ typedef struct Instruction
 
 	// Modifier (or operand 2)
 	int M;
-}; Instruction
+} Instruction;

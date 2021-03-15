@@ -1,5 +1,5 @@
 
-	// PL0_VirtualMachine.h //
+	// PL0_VirtualHardware.h //
 
 /*
 	Header file containing the implementation of the PL0 virtual machine
@@ -23,6 +23,20 @@
 
 	// Virtual Hardware //
 
+/*
+	This is the hardware simulation of the virtual machine.
+
+	Components are as follows:
+		pc = program counter; the current instruction the VM is on
+		sp = stack pointer; the current value we are pointing to on the stack
+		bp = base pointer; the base of the current activation record
+		ir = current instruction we are executing
+
+		code = the array of instructions; obtained either from IO or parsing
+		R = the registers of this system
+		stack = the stack of this system
+*/
+
 	// Program Counter
 	int pc = 0;
 
@@ -31,6 +45,9 @@
 
 	// Instruction Register
 	Instruction ir;
+
+	// Instruction array
+	Instruction code[MAX_CODE_LENGTH] = {0};
 
 	// Registers
 	int R[MAX_REGISTERS] = {0};
