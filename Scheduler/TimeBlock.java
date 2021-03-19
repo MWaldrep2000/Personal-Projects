@@ -84,7 +84,11 @@ public class TimeBlock
 			this.bounds[i] = hour;
 		}
 
-		// TODO: Implement checking for if the first boundary is larger than the second
+		// If the lower bound is greater than the upper bound
+		if (this.bounds[1] < this.bounds[0])
+		{
+			throw new NumberFormatException("Error: improper boundaries. The upper bound must be greater than the lower bound.");
+		}
 
 		// Fill in the hours boolean array with the respective values
 		for (int i = 0; i < NUM_HOURS; i++)
