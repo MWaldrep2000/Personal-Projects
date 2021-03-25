@@ -1,3 +1,6 @@
 *.class
-*.out
+*.csv
 *.json
+*.out
+*.Rdata
+*.Rhistory
