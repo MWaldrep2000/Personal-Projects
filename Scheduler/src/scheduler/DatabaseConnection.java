@@ -28,6 +28,9 @@ public class DatabaseConnection
 		// Public Constructors and Methods //
 	
 	// Public constructor for DatabaseConnection object
+	// Possible SQLException is processed inside the constructor
+	// as to avoid the need for try-catch blocks when used with
+	// API calls
 	public DatabaseConnection()
 	{
 		// This is the connection to the local instance of a MySQL server
