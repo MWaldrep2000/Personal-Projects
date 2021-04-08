@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Servant implements Runnable
-{
+{	
 	// This servant's access to the presents list
 	private LinkedList<Present> presents;
 	
@@ -65,12 +65,6 @@ public class Servant implements Runnable
 	// Returns nothing
 	public void thank(Present p)
 	{
-		if (p.getThanked() == false)
-		{
-			System.out.println("Servant #" + this.servantID + " writing thank you for Present #" + p.ID);
-
-			// Finish the card
-			p.thank();
-		}
+		p.thank();
 	}
 }

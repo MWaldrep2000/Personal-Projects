@@ -3,8 +3,13 @@
 
 // Implementation of the Present class for the thank you cards problem //
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class Present
 {
+	// Present lock
+	private final ReentrantLock presentLock = new ReentrantLock();
+	
 	// The present's identification number
 	public final int ID;
 	
@@ -31,6 +36,17 @@ public class Present
 	// Returns nothing
 	public void thank()
 	{
-		this.thanked = true;
+		// Acquire the lock
+		presentLock.lock();
+
+		// Check if the present has already been thanked
+		if (!this.getThanked())
+		{
+			this.thanked = true;
+			System.out.println(this.ID);
+		}
+
+		// Release the lock
+		presentLock.unlock();
 	}
 }

@@ -75,10 +75,10 @@ public class Minotaur
 
 	public static void main(String [] args)
 	{
-		Minotaur m = new Minotaur(500, 8);
+		Minotaur m = new Minotaur(20, 8);
 		m.startThanking();
 
-		if (!m.checkThanks())
+		while (!m.checkThanks())
 		{
 			System.out.println(":(");
 		}
