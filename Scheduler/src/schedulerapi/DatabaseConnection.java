@@ -2,7 +2,7 @@
  * @author Matthew Waldrep
  */
 
-package scheduler;
+package schedulerapi;
 
 	// DatabaseConnection.java //
 
