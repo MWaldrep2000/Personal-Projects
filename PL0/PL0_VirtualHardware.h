@@ -47,7 +47,7 @@
 	Instruction ir;
 
 	// Instruction array
-	Instruction code[MAX_CODE_LENGTH] = {0};
+	Instruction code[MAX_CODE_LENGTH];
 
 	// Registers
 	int R[MAX_REGISTERS] = {0};

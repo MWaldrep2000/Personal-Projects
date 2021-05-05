@@ -22,6 +22,10 @@
 		M = operand 2
 */
 
+	// Library Includes //
+
+#include <stdlib.h>
+
 	// Program Instructions //
 
 // Store literal M at register R //
@@ -131,16 +135,52 @@
 // R = (L >= M)
 #define GEQ 24
 
+	// Opcode Enum //
+
+/*
+	The enum for all opcodes; typedef'ed as I
+
+	An enum is used so that opcodes have their own type
+*/
+
+typedef enum OpcodeSet
+{
+	lit = LIT,
+	rtn = RTN,
+	lod = LOD,
+	sto = STO,
+	cal = CAL,
+	inc = INC,
+	jmp = JMP,
+	jpc = JPC,
+	sio_w = SIO_W,
+	sio_r = SIO_R,
+	sio_h = SIO_H,
+	neg = NEG,
+	add = ADD,
+	sub = SUB,
+	mul = MUL,
+	div = DIV,
+	odd = ODD,
+	mod = MOD,
+	eql = EQL,
+	neq = NEQ,
+	lss = LSS,
+	leq = LEQ,
+	gtr = GTR,
+	geq = GEQ
+} Opcode;
+
 	// Instruction Struct //
 
 /*
-	Framework to hold the current instruction
+	Framework to instructions
 */
 
-typedef struct Instruction
+typedef struct InstructionStruct
 {
 	// Opcode
-	int O;
+	Opcode O;
 
 	// Register
 	int R;
@@ -151,3 +191,32 @@ typedef struct Instruction
 	// Modifier (or operand 2)
 	int M;
 } Instruction;
+
+	// Instruction Functions //
+
+// Converts the current instruction into an opcode
+// *num = the address of an integer
+// *res = the address of the opcode that the integer will be stored in
+// Returns true if the conversion was successful
+bool convertToOpcode(int *num, Opcode *res)
+{
+	// While it SHOULD be impossible, implementation-wise
+	// Check just to be safe
+	if (num == NULL || res == NULL)
+	{
+		return false;
+	}
+
+	// See if the passed *num is an invalid opcode
+	if (*num < LIT || *num > GEQ)
+	{
+		return false;
+	}
+
+	// At this point, *num is valid,
+	// Cast as an Opcode and store
+	*res = (Opcode)(*num);
+
+	// Return true to indicate successful execution
+	return true;
+}

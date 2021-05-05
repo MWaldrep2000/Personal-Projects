@@ -78,7 +78,11 @@ void readVM(FILE *input)
 		{
 			// Read opcode O
 			case OPCODE:
-				code[i / 4].O = in;
+				// Check if we can convert in to opcode
+				if (!convertToOpcode(&in, &(code[i / 4].O)))
+				{
+					//panic(CODE_ERROR, INVALID_OPCODE);
+				}
 			break;
 
 			// Read register R
