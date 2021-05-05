@@ -54,6 +54,8 @@
 // *input = the input file; extension .PL0_VM
 	// guaranteed to not be NULL
 // Returns nothing; panics on an error
+	// NOTE: only used for .PL0_VM files; the input logic is VERY different
+	// if the input files is a list of symbols or PL0 code
 void readVM(FILE *input)
 {
 	// Input integer
@@ -68,6 +70,7 @@ void readVM(FILE *input)
 		// If i / 4 exceeds the maximum code length
 		if ((i / 4) >= MAX_CODE_LENGTH)
 		{
+			fclose(input);
 			//panic(IO_ERROR, EXCEEDS_CODE_LENGTH);
 		}
 		
@@ -79,26 +82,31 @@ void readVM(FILE *input)
 			// Read opcode O
 			case OPCODE:
 				// Check if we can convert in to opcode
-				if (!convertToOpcode(&in, &(code[i / 4].O)))
+				if (!convertToOpcode(&in, &(code.code[i / 4].O)))
 				{
+					fclose(input);
 					//panic(CODE_ERROR, INVALID_OPCODE);
 				}
 			break;
 
 			// Read register R
 			case REGISTER:
-				code[i / 4].R = in;			
+				code.code[i / 4].R = in;			
 			break;
 
 			// Read lexi L
 			case LEXI:
-				code[i / 4].L = in;
+				code.code[i / 4].L = in;
 			break;
 
 			// Read modifier M
 			case MODIFIER:
-				code[i / 4].M = in;
-			break;
+				code.code[i / 4].M = in;
+			
+			// With no break statement, fall through to default
+			// and increment size in code
+			default:
+				code.size++;
 		}
 	}
 }
@@ -133,6 +141,7 @@ void readFile(FILE *input, int fileCode)
 		// Note: unless there is a problem in the execution of this program,
 		// we will NEVER make it here
 		default:
+			fclose(input);
 			//panic(IO_ERROR, INVALID_INPUT_FILE);
 	}
 }
